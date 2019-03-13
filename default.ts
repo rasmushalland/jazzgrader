@@ -28,7 +28,7 @@ function findPhrases(text: string): PositionedPhrase[] {
     let parts: PositionedPhrase[] = [];
     // this regex is made for some random text (typescript manual piece),
     // so it might need some modifications.
-    text.replace(/(\b[A-Z].+?\.)/gms, (s, ...rest) => {
+    text.replace(/(\b[A-Z].+?(?:\.|\?))/gms, (s, ...rest) => {
         const pos = rest[1] as number;
         parts.push({ text: s, pos });
         return 'Q';
