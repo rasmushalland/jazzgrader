@@ -8,12 +8,13 @@ type ParsedPhrase = Readonly<{
 
 interface String {
     startsWith(x: string): boolean;
+    normalize(nf: string): string;
 }
 
 function parsePhrase(p: PositionedPhrase): ParsedPhrase {
     const words: string[] = [];
     p.text.replace(/(\w+)/g, (s, ...rest) => {
-        words.push(s.toLocaleLowerCase());
+        words.push(removeDiacritics(s.toLocaleLowerCase()));
         return 'oo';
     });
     return {
@@ -53,18 +54,33 @@ function tryGetComplNum(wx: string): number | 'maybe' | null {
     return parseInt(numstr, 10);
 }
 
+function hideResults() {
+    const reslist = document.getElementById('options');
+    if (!(reslist instanceof HTMLOListElement))
+        throw new Error('options is not an OL.');
+    while (true) {
+        if (!reslist.firstElementChild)
+            break;
+        reslist.firstElementChild.remove();
+    }
+}
 function setupTextarea() {
     const ta = document.getElementById('ta1');
     if (!(ta instanceof HTMLTextAreaElement))
         throw new Error('ta1 not found.');
 
     const pdb = findPhrases(rawtext).map(sent => parsePhrase(sent));
+    ta.addEventListener('blur', evt => {
+        hideResults();
+    });
     ta.addEventListener('input', evt => {
         const phrases = findPhrases(ta.value || '');
         const cursorpos = ta.selectionStart;
         const matchingPhrases = phrases.filter(p => p.pos <= cursorpos && p.pos + p.text.length > cursorpos);
-        if (matchingPhrases.length === 0)
+        if (matchingPhrases.length === 0) {
+            hideResults();
             return;
+        }
         const mp = matchingPhrases[0];
         const editp = parsePhrase(mp);
 
@@ -88,17 +104,13 @@ function setupTextarea() {
         }
 
         // console.log('match count', matches.length);
-        console.log('matches', matches.map(m => m.text));
+        // console.log('matches', matches.map(m => m.text));
 
         // Transform matches to list entries.
+        hideResults();
         const reslist = document.getElementById('options');
         if (!(reslist instanceof HTMLOListElement))
             throw new Error('options is not an OL.');
-        while (true) {
-            if (!reslist.firstElementChild)
-                break;
-            reslist.firstElementChild.remove();
-        }
         const complnums = editp.words
             .map(w => tryGetComplNum(w))
             .filter(cn => cn !== null && cn !== 'maybe');
@@ -115,7 +127,6 @@ function setupTextarea() {
                 ta.value = newtext;
                 ta.selectionStart = before.length + replacement.length - 1;
                 ta.selectionEnd = before.length + replacement.length - 1;
-
             }
             else
                 console.log(`Match #${n + 1} does not exist.`);
@@ -127,7 +138,6 @@ function setupTextarea() {
             }
         }
     });
-
 }
 
 setTimeout(() => {
@@ -135,6 +145,23 @@ setTimeout(() => {
     const pplist = findPhrases(rawtext).map(sent => parsePhrase(sent));
     console.debug(pplist);
 }, 1000);
+
+function removeDiacritics(str: string): string {
+    const s1 = str.normalize('NFD');
+    if (s1.length === str.length)
+        return str;
+    const arr : string[] = [];
+    for (let idx = 0; idx < s1.length; idx++)
+    {
+        const ch = s1.charCodeAt(idx);
+        const isdia = ch >= 0x300 && ch <= 0x36f;
+        if(!isdia){
+            arr.push(s1.substr(idx, 1));
+        }
+
+    }
+    return arr.join('');
+}
 
 
 
