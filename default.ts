@@ -5,6 +5,11 @@ type ParsedPhrase = Readonly<{
     pos: number,
 }>;
 
+
+interface String {
+    startsWith(x: string): boolean;
+}
+
 function parsePhrase(p: PositionedPhrase): ParsedPhrase {
     const words: string[] = [];
     p.text.replace(/(\w+)/g, (s, ...rest) => {
@@ -17,6 +22,7 @@ function parsePhrase(p: PositionedPhrase): ParsedPhrase {
         pos: p.pos,
     };
 }
+
 
 function findPhrases(text: string): PositionedPhrase[] {
     let parts: PositionedPhrase[] = [];
@@ -34,10 +40,51 @@ function findPhrases(text: string): PositionedPhrase[] {
     }));
 }
 
+function setupTextarea() {
+    const ta = document.getElementById('ta1');
+    if (!(ta instanceof HTMLTextAreaElement))
+        throw new Error('ta1 not found.');
+
+    const pdb = findPhrases(rawtext).map(sent => parsePhrase(sent));
+    ta.addEventListener('input', evt => {
+        const phrases = findPhrases(ta.value || '');
+        const cursorpos = ta.selectionStart;
+        const matchingPhrases = phrases.filter(p => p.pos <= cursorpos && p.pos + p.text.length > cursorpos);
+        if (matchingPhrases.length === 0)
+            return;
+        const mp = matchingPhrases[0];
+        const curp = parsePhrase(mp);
+        console.log('pp', mp.text);
+
+        const matches: ParsedPhrase[] = [];
+        for (const ref of pdb) {
+            let match = true;
+            for (let wi = 0; wi < curp.words.length; wi++) {
+                if (wi >= ref.words.length) {
+                    break;
+                }
+                if (curp.words[wi] !== ref.words[wi]) {
+                    const isprefix = ref.words[wi].startsWith(curp.words[wi]);
+                    if (!isprefix)
+                        match = false;
+                }
+            }
+            if (match)
+                matches.push(ref);
+        }
+
+        // console.log('match count', matches.length);
+        console.log('matches', matches.map(m => m.text));
+
+    });
+
+}
+
 setTimeout(() => {
+    setupTextarea();
     const pplist = findPhrases(rawtext).map(sent => parsePhrase(sent));
     console.debug(pplist);
-}, 100);
+}, 1000);
 
 
 
