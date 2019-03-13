@@ -1,20 +1,32 @@
-let res: any;
-function f1() {
 
+type ParsedPhrase = Readonly<{
+    text: string,
+    words: string[]
+}>;
+
+function parsePhrase(p: string): ParsedPhrase {
+    const words: string[] = [];
+    p.replace(/(\w+)/g, (s, ...rest) => {
+        words.push(s.toLocaleLowerCase());
+        return 'oo';
+    });
+    return {
+        text: p,
+        words: words,
+    };
+}
+
+function splitSentences() {
     let parts: string[] = [];
-    // res = rawtext.replace(/([A-Z][\w"' ]+?(?:\.(?: |$)))/gm, (s, ...rest) => {
-    res = rawtext.replace(/(\b[A-Z].+?\.)/gms, (s, ...rest) => {
+    rawtext.replace(/(\b[A-Z].+?\.)/gms, (s, ...rest) => {
         parts.push(s);
-        // console.debug(s, rest);
         return 'Q';
+    });
 
-    })
-    res = parts;
-    return res;
-
+    return parts.map(s => s.replace(/\s+/g, ' '));
 }
 setTimeout(() => {
-   console.debug(f1()) 
+    console.debug(splitSentences());
 }, 100);
 
 
