@@ -76,6 +76,7 @@ function setupTextarea() {
         // console.log('match count', matches.length);
         console.log('matches', matches.map(m => m.text));
 
+        // Transform matches to list entries.
         const reslist = document.getElementById('options');
         if (!(reslist instanceof HTMLOListElement))
             throw new Error('options is not an OL.');
