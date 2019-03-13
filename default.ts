@@ -76,6 +76,19 @@ function setupTextarea() {
         // console.log('match count', matches.length);
         console.log('matches', matches.map(m => m.text));
 
+        const reslist = document.getElementById('options');
+        if (!(reslist instanceof HTMLOListElement))
+            throw new Error('options is not an OL.');
+        while (true) {
+            if (!reslist.firstElementChild)
+                break;
+            reslist.firstElementChild.remove();
+        }
+        for (let idx = 0; idx < Math.min(matches.length, 9); idx++) {
+            const li = document.createElement('li');
+            li.innerText = matches[idx].text;
+            reslist.appendChild(li);
+        }
     });
 
 }
