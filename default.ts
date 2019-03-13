@@ -1,42 +1,46 @@
-
+type PositionedPhrase = Readonly<{ text: string, pos: number }>;
 type ParsedPhrase = Readonly<{
     text: string,
-    words: string[]
+    words: string[],
+    pos: number,
 }>;
 
-function parsePhrase(p: string): ParsedPhrase {
+function parsePhrase(p: PositionedPhrase): ParsedPhrase {
     const words: string[] = [];
-    p.replace(/(\w+)/g, (s, ...rest) => {
+    p.text.replace(/(\w+)/g, (s, ...rest) => {
         words.push(s.toLocaleLowerCase());
         return 'oo';
     });
     return {
-        text: p,
+        text: p.text,
         words: words,
+        pos: p.pos,
     };
 }
 
-function splitSentences() {
-    let parts: string[] = [];
-    rawtext.replace(/(\b[A-Z].+?\.)/gms, (s, ...rest) => {
-        parts.push(s);
+function findPhrases(text: string): PositionedPhrase[] {
+    let parts: PositionedPhrase[] = [];
+    // this regex is made for some random text (typescript manual piece),
+    // so it might need some modifications.
+    text.replace(/(\b[A-Z].+?\.)/gms, (s, ...rest) => {
+        const pos = rest[1] as number;
+        parts.push({ text: s, pos });
         return 'Q';
     });
 
-    return parts.map(s => s.replace(/\s+/g, ' '));
+    return parts.map(r => ({
+        text: r.text.replace(/\s+/g, ' '),
+        pos: r.pos
+    }));
 }
+
 setTimeout(() => {
-    console.debug(splitSentences());
+    const pplist = findPhrases(rawtext).map(sent => parsePhrase(sent));
+    console.debug(pplist);
 }, 100);
 
 
-const r2 = `Details
-The "compilerOptions" property can be omitted, in which case the compiler’s
-defaults are used. See our full list of supported Compiler Options.
 
-The "files" property takes a list of relative or absolute file paths. The
-"include" and "exclude" properties take a list of glob-like file patterns.
-`;
 const rawtext = `Details
 The "compilerOptions" property can be omitted, in which case the compiler’s
 defaults are used. See our full list of supported Compiler Options.
