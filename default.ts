@@ -40,6 +40,19 @@ function findPhrases(text: string): PositionedPhrase[] {
     }));
 }
 
+function tryGetComplNum(wx: string): number | 'maybe' | null {
+    const arr = wx.match(/^p(\d*)$/);
+    if (!arr)
+        return null;
+    const [_, numstr] = arr;
+    // If the user is typing 'p' in order to select a completion, we don't want
+    // the completion list to go away just because the number has not yet been
+    // entered.
+    if (numstr === '')
+        return 'maybe';
+    return parseInt(numstr, 10);
+}
+
 function setupTextarea() {
     const ta = document.getElementById('ta1');
     if (!(ta instanceof HTMLTextAreaElement))
@@ -53,24 +66,25 @@ function setupTextarea() {
         if (matchingPhrases.length === 0)
             return;
         const mp = matchingPhrases[0];
-        const curp = parsePhrase(mp);
-        console.log('pp', mp.text);
+        const editp = parsePhrase(mp);
 
         const matches: ParsedPhrase[] = [];
-        for (const ref of pdb) {
+        for (const refp of pdb) {
             let match = true;
-            for (let wi = 0; wi < curp.words.length; wi++) {
-                if (wi >= ref.words.length) {
+            for (let editidx = 0, refidx = 0; editidx < editp.words.length; editidx++ , refidx++) {
+                if (editidx >= refp.words.length) {
                     break;
                 }
-                if (curp.words[wi] !== ref.words[wi]) {
-                    const isprefix = ref.words[wi].startsWith(curp.words[wi]);
-                    if (!isprefix)
+                if (editp.words[editidx] !== refp.words[refidx]) {
+                    const isprefix = refp.words[refidx].startsWith(editp.words[editidx]);
+                    const iscompletionreq = tryGetComplNum(editp.words[editidx]) !== null;
+                    if (!isprefix && !iscompletionreq) {
                         match = false;
+                    }
                 }
             }
             if (match)
-                matches.push(ref);
+                matches.push(refp);
         }
 
         // console.log('match count', matches.length);
@@ -85,10 +99,32 @@ function setupTextarea() {
                 break;
             reslist.firstElementChild.remove();
         }
-        for (let idx = 0; idx < Math.min(matches.length, 9); idx++) {
-            const li = document.createElement('li');
-            li.innerText = matches[idx].text;
-            reslist.appendChild(li);
+        const complnums = editp.words
+            .map(w => tryGetComplNum(w))
+            .filter(cn => cn !== null && cn !== 'maybe');
+        if (complnums.length) {
+            console.log('complnums', complnums);
+            const n = complnums[0] as number - 1;
+            if (n < matches.length) {
+                const replacement = matches[n].text;
+                const curtext = ta.value;
+                const ofs = editp.pos;
+                // const len = editp.text.length;
+                const before = curtext.substr(0, ofs);
+                const after = curtext.substr(ofs + editp.text.length);
+                const newtext = before + replacement + after;
+                ta.value = newtext;
+                ta.selectionStart = before.length + replacement.length;
+
+            }
+            else
+                console.log(`Match #${n + 1} does not exist.`);
+        } else {
+            for (let idx = 0; idx < Math.min(matches.length, 9); idx++) {
+                const li = document.createElement('li');
+                li.innerText = matches[idx].text;
+                reslist.appendChild(li);
+            }
         }
     });
 
