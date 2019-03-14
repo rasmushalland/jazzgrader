@@ -34,17 +34,16 @@ function findPhrasesInUserInput(text: string): PositionedPhrase[] {
 function findPhrasesEx(text: string, isRefText: boolean): PositionedPhrase[] {
     let parts: PositionedPhrase[] = [];
     if (!isRefText) {
-        // this regex is made for some random text (typescript manual piece),
-        // so it might need some modifications.
+        // this regex is made for some random text (typescript manual piece), so
+        // it might need some modifications.
         text.replace(/(\b[A-Z].+?(?:\.|\?))/gms, (s, ...rest) => {
             const pos = rest[1] as number;
             parts.push({ text: s, pos });
             return 'Q';
         });
     } else {
-        // using .split does not give us the match position.
-        // Not that we need it for the reference text, but we do need it
-        // for the user input.
+        // using .split does not give us the match position. Not that we need it
+        // for the reference text, but we do need it for the user input.
 
         // This is a bit clumsy: we want one item per blank-line-separated
         // sequence of text lines. regex could be shorter, but it resisted...
@@ -68,8 +67,8 @@ function findPhrasesEx(text: string, isRefText: boolean): PositionedPhrase[] {
             }
         }
 
-        console.log('parse ref, got ' + lines.length + ' lines.', lines.map(l => l.text));
 
+        // Identify the line sequences and join them.
         let cursectlines: { text: string, pos: number }[] | null = null;
         const sections: { text: string, pos: number }[] = [];
         const drainToSectionIfNotEmpty = () => {
@@ -131,11 +130,20 @@ function setupTextarea() {
         throw new Error('ta1 not found.');
 
     const pdb = findPhrasesInRefText(reftextraw).map(sent => parsePhrase(sent));
-    ta.addEventListener('blur', evt => {
+    ta.addEventListener('blur', () => {
         hideResults();
     });
-    ta.addEventListener('input', evt => {
-        const phrases = findPhrasesInUserInput(ta.value || '');
+    ta.addEventListener('input', () => {
+        const usertext = ta.value;
+
+        // Update the character count info.
+        const charcntinp = document.getElementById('charcntinp')!;
+        if (!(charcntinp instanceof HTMLInputElement))
+            throw new Error('charcntinp');
+        charcntinp.value = usertext.length.toString();
+
+        // Find the phrase that the cursor is in, if any.
+        const phrases = findPhrasesInUserInput(usertext || '');
         const cursorpos = ta.selectionStart;
         const matchingPhrases = phrases.filter(p => p.pos <= cursorpos && p.pos + p.text.length > cursorpos);
         if (matchingPhrases.length === 0) {
@@ -145,6 +153,7 @@ function setupTextarea() {
         const mp = matchingPhrases[0];
         const editp = parsePhrase(mp);
 
+        // Find matching phrases in the reference text.
         const matches: ParsedPhrase[] = [];
         for (const refp of pdb) {
             let match = true;
