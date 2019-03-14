@@ -178,6 +178,7 @@ function setupTextarea() {
         charcntinp.value = usertext.length.toString();
     }
 
+    updateCharCountinfo();
     const pdb = findPhrasesInRefText(reftextraw).map(sent => parsePhrase(sent));
     ta.addEventListener('blur', () => {
         hideResults();
