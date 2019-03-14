@@ -8,10 +8,6 @@
 // should not perform our tests.
 
 if ('QUnit' in window) {
-    QUnit.test("hello test", function (assert) {
-        assert.ok(1 == "1", "Passed!");
-    });
-
     QUnit.test("ref text splits at blank lines", ass => {
         const input = `
 The first one.
@@ -21,7 +17,7 @@ more to come, this one without capital letter and trailing period
 
  `.replace('\r\n', '\n');
 
-        const dump = findPhrases(input).map(part => part.text);
+        const dump = findPhrasesInRefText(input).map(part => part.text);
         ass.equal(dump, [
             "The first one. second line of the first.",
             "more to come, this one without capital letter and trailing period",

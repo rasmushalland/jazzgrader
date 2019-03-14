@@ -25,9 +25,15 @@ function parsePhrase(p: PositionedPhrase): ParsedPhrase {
 }
 
 
-function findPhrases(text: string): PositionedPhrase[] {
+function findPhrasesInRefText(text: string): PositionedPhrase[] {
+    return findPhrasesEx(text, true);
+}
+function findPhrasesInUserInput(text: string): PositionedPhrase[] {
+    return findPhrasesEx(text, false);
+}
+function findPhrasesEx(text: string, isRefText: boolean): PositionedPhrase[] {
     let parts: PositionedPhrase[] = [];
-    if (false) {
+    if (!isRefText) {
         // this regex is made for some random text (typescript manual piece),
         // so it might need some modifications.
         text.replace(/(\b[A-Z].+?(?:\.|\?))/gms, (s, ...rest) => {
@@ -39,18 +45,30 @@ function findPhrases(text: string): PositionedPhrase[] {
         // using .split does not give us the match position.
         // Not that we need it for the reference text, but we do need it
         // for the user input.
-        // const partsx = text.split(/(?:\r?\n){2,}/g);
-        // for (const p of partsx)
-        //     parts.push({ text: p, pos: -1 });
 
         // This is a bit clumsy: we want one item per blank-line-separated
         // sequence of text lines. regex could be shorter, but it resisted...
         const lines: { text: string, pos: number }[] = [];
-        text.replace(/^(.+?)$/gm, (line, ...rest) => {
-            const pos = rest[1] as number;
-            lines.push({ text: line, pos });
-            return 'Q';
-        });
+        let lastlfidx = -1;
+        let iter = 0;
+        while (true) {
+            iter++;
+            if (iter >= 500)
+                throw new Error('iter...');
+            const nextidx = text.indexOf('\n', lastlfidx + 1);
+            if (nextidx == -1) {
+                if (lastlfidx + 2 < text.length) {
+                    lines.push({ text: text.substr(lastlfidx + 1), pos: lastlfidx + 1 });
+                }
+                break;
+            }
+            else {
+                lines.push({ text: text.substr(lastlfidx + 1, nextidx - (lastlfidx + 1)), pos: lastlfidx + 1 });
+                lastlfidx = nextidx;
+            }
+        }
+
+        console.log('parse ref, got ' + lines.length + ' lines.', lines.map(l => l.text));
 
         let cursectlines: { text: string, pos: number }[] | null = null;
         const sections: { text: string, pos: number }[] = [];
@@ -112,12 +130,12 @@ function setupTextarea() {
     if (!(ta instanceof HTMLTextAreaElement))
         throw new Error('ta1 not found.');
 
-    const pdb = findPhrases(rawtext).map(sent => parsePhrase(sent));
+    const pdb = findPhrasesInRefText(reftextraw).map(sent => parsePhrase(sent));
     ta.addEventListener('blur', evt => {
         hideResults();
     });
     ta.addEventListener('input', evt => {
-        const phrases = findPhrases(ta.value || '');
+        const phrases = findPhrasesInUserInput(ta.value || '');
         const cursorpos = ta.selectionStart;
         const matchingPhrases = phrases.filter(p => p.pos <= cursorpos && p.pos + p.text.length > cursorpos);
         if (matchingPhrases.length === 0) {
@@ -145,9 +163,6 @@ function setupTextarea() {
             if (match)
                 matches.push(refp);
         }
-
-        // console.log('match count', matches.length);
-        // console.log('matches', matches.map(m => m.text));
 
         // Transform matches to list entries.
         hideResults();
@@ -186,8 +201,8 @@ function setupTextarea() {
 setTimeout(() => {
     if (document.getElementById('ta1'))
         setupTextarea();
-    const pplist = findPhrases(rawtext).map(sent => parsePhrase(sent));
-    console.debug(pplist);
+    const pplist = findPhrasesInRefText(reftextraw).map(sent => parsePhrase(sent));
+    console.log(pplist);
 }, 1000);
 
 function removeDiacritics(str: string): string {
@@ -210,7 +225,7 @@ function removeDiacritics(str: string): string {
 
 
 
-const rawtext = `
+const reftextraw = `
 Good job, keep on working
 
 
