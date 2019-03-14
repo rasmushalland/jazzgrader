@@ -164,9 +164,19 @@ function hideResults() {
     }
 }
 function setupTextarea() {
-    const ta = document.getElementById('ta1');
-    if (!(ta instanceof HTMLTextAreaElement))
+    const tax = document.getElementById('ta1');
+    if (!(tax instanceof HTMLTextAreaElement))
         throw new Error('ta1 not found.');
+    const ta = tax;
+
+    function updateCharCountinfo() {
+        // Update the character count info.
+        const charcntinp = document.getElementById('charcntinp')!;
+        if (!(charcntinp instanceof HTMLInputElement))
+            throw new Error('charcntinp');
+        const usertext = ta.value;
+        charcntinp.value = usertext.length.toString();
+    }
 
     const pdb = findPhrasesInRefText(reftextraw).map(sent => parsePhrase(sent));
     ta.addEventListener('blur', () => {
@@ -174,27 +184,18 @@ function setupTextarea() {
     });
     ta.addEventListener('input', () => {
         const usertext = ta.value;
+        updateCharCountinfo();
 
-        // Update the character count info.
-        const charcntinp = document.getElementById('charcntinp')!;
-        if (!(charcntinp instanceof HTMLInputElement))
-            throw new Error('charcntinp');
-        charcntinp.value = usertext.length.toString();
-
-        // Find the phrase that the cursor is in, if any.
-        const phrases = findPhrasesInUserInput(usertext || '');
+        // Find the phrase that the cursor is in.
         const cursorpos = ta.selectionStart;
         const ps = searchSentStartBack(usertext, cursorpos);
         const pe = getSearchSentStartFwd(usertext, cursorpos);
-        //     return usertext.substr(ps, pe - ps);
-        // const matchingPhrases = phrases.filter(p => p.pos <= cursorpos && p.pos + p.text.length > cursorpos);
-        // if (matchingPhrases.length === 0) {
-        //     hideResults();
-        //     return;
-        // }
-        // const mp = matchingPhrases[0];
         const mp: PositionedPhrase = { text: usertext.substr(ps, pe - ps), pos: ps };
         const editp = parsePhrase(mp);
+        if (editp.words.length === 0) {
+            hideResults();
+            return;
+        }
 
         // Find matching phrases in the reference text.
         const matches: ParsedPhrase[] = [];
@@ -207,7 +208,8 @@ function setupTextarea() {
                 if (editp.words[editidx] !== refp.words[refidx]) {
                     const isprefix = refp.words[refidx].startsWith(editp.words[editidx]);
                     const iscompletionreq = tryGetComplNum(editp.words[editidx]) !== null;
-                    if (!isprefix && !iscompletionreq) {
+                    const canmatch = (isprefix && editidx >= editp.words.length - 2) || iscompletionreq;
+                    if (!canmatch) {
                         match = false;
                     }
                 }
@@ -225,7 +227,6 @@ function setupTextarea() {
             .map(w => tryGetComplNum(w))
             .filter(cn => cn !== null && cn !== 'maybe');
         if (complnums.length) {
-            console.log('complnums', complnums);
             const n = complnums[0] as number - 1;
             if (n < matches.length) {
                 const replacement = matches[n].text + '.';
@@ -237,6 +238,7 @@ function setupTextarea() {
                 ta.value = newtext;
                 ta.selectionStart = before.length + replacement.length - 1;
                 ta.selectionEnd = before.length + replacement.length - 1;
+                updateCharCountinfo();
             }
             else
                 console.log(`Match #${n + 1} does not exist.`);
