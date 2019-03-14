@@ -31,6 +31,43 @@ function findPhrasesInRefText(text: string): PositionedPhrase[] {
 function findPhrasesInUserInput(text: string): PositionedPhrase[] {
     return findPhrasesEx(text, false);
 }
+
+function searchSentStartBack(text: string, pos: number): number {
+    const period = 46;
+    for (let idx = pos; idx >= 0; idx--) {
+        const ch = text.charCodeAt(idx);
+        if (ch === period) {
+            const isboundary = idx > 0 && text[idx - 1].match(/\w/);
+            if (isboundary) {
+                // Look a bit forward to see if we can find some non-whitespace.
+                let idxf = idx + 1;
+                for (; idxf <= idx; idxf++) {
+                    if (!text[idxf].match(/\s/))
+                        break;
+                }
+                return Math.min(idxf + 1, pos);
+            }
+
+        }
+        else if (ch === 10) {
+            return Math.min(idx + 1, pos);
+        }
+    }
+    return 0;
+
+}
+function getSearchSentStartFwd(text: string, pos: number): number {
+    const period = 46;
+    for (let idx = pos + 1; idx < text.length; idx++) {
+        const ch = text.charCodeAt(idx);
+        if (ch == period && idx > pos && text[idx - 1].match(/\w/))
+            return idx + 1;
+        if (ch == 13 || ch === 10)
+            return idx;
+    }
+    return pos;
+}
+
 function findPhrasesEx(text: string, isRefText: boolean): PositionedPhrase[] {
     let parts: PositionedPhrase[] = [];
     if (!isRefText) {
@@ -41,6 +78,8 @@ function findPhrasesEx(text: string, isRefText: boolean): PositionedPhrase[] {
             parts.push({ text: s, pos });
             return 'Q';
         });
+
+
     } else {
         // using .split does not give us the match position. Not that we need it
         // for the reference text, but we do need it for the user input.
@@ -145,12 +184,16 @@ function setupTextarea() {
         // Find the phrase that the cursor is in, if any.
         const phrases = findPhrasesInUserInput(usertext || '');
         const cursorpos = ta.selectionStart;
-        const matchingPhrases = phrases.filter(p => p.pos <= cursorpos && p.pos + p.text.length > cursorpos);
-        if (matchingPhrases.length === 0) {
-            hideResults();
-            return;
-        }
-        const mp = matchingPhrases[0];
+        const ps = searchSentStartBack(usertext, cursorpos);
+        const pe = getSearchSentStartFwd(usertext, cursorpos);
+        //     return usertext.substr(ps, pe - ps);
+        // const matchingPhrases = phrases.filter(p => p.pos <= cursorpos && p.pos + p.text.length > cursorpos);
+        // if (matchingPhrases.length === 0) {
+        //     hideResults();
+        //     return;
+        // }
+        // const mp = matchingPhrases[0];
+        const mp: PositionedPhrase = { text: usertext.substr(ps, pe - ps), pos: ps };
         const editp = parsePhrase(mp);
 
         // Find matching phrases in the reference text.

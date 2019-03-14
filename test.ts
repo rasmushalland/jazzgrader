@@ -30,4 +30,25 @@ more to come, this one without capital letter and trailing period
         // `.trim().replace('\r\n', '\n'));
 
     });
+    QUnit.test('Find start of sentence, looking backwards', ass => {
+        function getSearchSentStartBack(text: string): string {
+            const cursorpos = text.indexOf('Q');
+            if (cursorpos === -1)
+                throw new Error('Didn\'t find cursor indicator Q.');
+            const ps = searchSentStartBack(text, cursorpos);
+            const pe = getSearchSentStartFwd(text, cursorpos);
+            return text.substr(ps, pe - ps);
+            // return text.substr(ps);
+        }
+        ass.equal(getSearchSentStartBack('The sentence iQs this.'), 'The sentence iQs this.');
+        ass.equal(getSearchSentStartBack('Sentence before. The sentence iQs this.'), 'The sentence iQs this.');
+        ass.equal(getSearchSentStartBack(`Sentence before. 
+The sentence iQs this.`), 'The sentence iQs this.');
+        ass.equal(getSearchSentStartBack(`Sentence before. 
+the sentence iQs this. More
+`), 'the sentence iQs this.');
+        ass.equal(getSearchSentStartBack(`Sentence before. 
+the sentence iQs this. More
+`), 'the sentence iQs this.');
+    });
 }
