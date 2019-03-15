@@ -20,7 +20,7 @@ more to come, this one without capital letter and trailing period
         const dump = findPhrasesInRefText(input).map(part => part.text);
         ass.equal(dump, [
             "The first one. second line of the first.",
-            "more to come, this one without capital letter and trailing period",
+            "more to come, this one without capital letter and trailing period.",
         ]);
 
         //         const dump = findPhrases(input).map(part => '>> ' + part.text + '<<').join('\r\n');

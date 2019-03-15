@@ -56,7 +56,11 @@ function findPhrasesInRefText(text: string): PositionedPhrase[] {
     const sections: { text: string, pos: number }[] = [];
     const drainToSectionIfNotEmpty = () => {
         if (cursectlines) {
-            var sectext = cursectlines.map(l => l.text).join('\n');
+            var sectext = cursectlines.map(l => l.text).join('\n').trim();
+            // Some ref texts do not end in period or other punctiation. Let us try to 
+            // help by making it do so.
+            if (sectext.length && sectext[sectext.length-1].match(/\w/))
+                sectext += '.';
             sections.push({ text: sectext, pos: cursectlines[0].pos });
         }
         cursectlines = null;
