@@ -101,10 +101,10 @@ function findPhrasesInUserInput(text: string): PositionedPhrase[] {
 }
 
 function searchSentStartBack(text: string, pos: number): number {
-    const period = 46;
+    const stops = ['.', '!', '?'].map(s => s.charCodeAt(0));
     for (let idx = pos; idx >= 0; idx--) {
         const ch = text.charCodeAt(idx);
-        if (ch === period) {
+        if (stops.indexOf(ch) !== -1) {
             const isboundary = idx > 0 && text[idx - 1].match(/\w/);
             if (isboundary) {
                 // Look a bit forward to see if we can find some non-whitespace.
@@ -125,10 +125,10 @@ function searchSentStartBack(text: string, pos: number): number {
 
 }
 function getSearchSentStartFwd(text: string, pos: number): number {
-    const period = 46;
+    const stops = ['.', '!', '?'].map(s => s.charCodeAt(0));
     for (let idx = pos + 1; idx < text.length; idx++) {
         const ch = text.charCodeAt(idx);
-        if (ch == period && idx > pos && text[idx - 1].match(/\w/))
+        if (stops.indexOf(ch) !== -1 && idx > pos && text[idx - 1].match(/\w/))
             return idx + 1;
         if (ch == 13 || ch === 10)
             return idx;
@@ -245,6 +245,10 @@ function setupTextarea() {
             throw new Error('charcntinp');
         const usertext = ta.value;
         charcntinp.value = usertext.length.toString();
+        if (usertext.length > 200)
+            charcntinp.classList.add('char-limit-exeeded');
+        else
+            charcntinp.classList.remove('char-limit-exeeded');
     }
 
     updateCharCountinfo();

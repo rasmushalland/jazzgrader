@@ -42,6 +42,8 @@ more to come, this one without capital letter and trailing period
         }
         ass.equal(getSearchSentStartBack('The sentence iQs this.'), 'The sentence iQs this.');
         ass.equal(getSearchSentStartBack('Sentence before. The sentence iQs this.'), 'The sentence iQs this.');
+        ass.equal(getSearchSentStartBack('Sentence before! The sentence iQs this.'), 'The sentence iQs this.');
+        ass.equal(getSearchSentStartBack('Sentence before? The sentence iQs this.'), 'The sentence iQs this.');
         ass.equal(getSearchSentStartBack(`Sentence before. 
 The sentence iQs this.`), 'The sentence iQs this.');
         ass.equal(getSearchSentStartBack(`Sentence before. 
