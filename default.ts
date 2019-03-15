@@ -160,7 +160,6 @@ function hideResults() {
     }
 }
 function findMatches(editp: ParsedPhrase, pdb: ReadonlyArray<ParsedPhrase>): ParsedPhrase[] {
-    // Find matching phrases in the reference text.
     const matches: ParsedPhrase[] = [];
     for (const refp of pdb) {
         let match = true;
@@ -171,7 +170,7 @@ function findMatches(editp: ParsedPhrase, pdb: ReadonlyArray<ParsedPhrase>): Par
             if (editp.words[editidx] !== refp.words[refidx]) {
                 const isprefix = refp.words[refidx].startsWith(editp.words[editidx]);
                 const iscompletionreq = tryGetComplNum(editp.words[editidx]) !== null;
-                const canmatch = (isprefix && editidx >= editp.words.length - 2) || iscompletionreq;
+                const canmatch = (isprefix && editidx >= editp.words.length - 2) || (iscompletionreq && editidx !== 0);
                 if (!canmatch) {
                     match = false;
                 }
