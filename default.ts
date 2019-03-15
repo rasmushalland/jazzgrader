@@ -59,7 +59,7 @@ function findPhrasesInRefText(text: string): PositionedPhrase[] {
             var sectext = cursectlines.map(l => l.text).join('\n').trim();
             // Some ref texts do not end in period or other punctiation. Let us try to 
             // help by making it do so.
-            if (sectext.length && sectext[sectext.length-1].match(/\w/))
+            if (sectext.length && sectext[sectext.length - 1].match(/\w/))
                 sectext += '.';
             sections.push({ text: sectext, pos: cursectlines[0].pos });
         }
@@ -161,6 +161,30 @@ function hideResults() {
         reslist.firstElementChild.remove();
     }
 }
+function findMatches(editp: ParsedPhrase, pdb: ReadonlyArray<ParsedPhrase>): ParsedPhrase[] {
+    // Find matching phrases in the reference text.
+    const matches: ParsedPhrase[] = [];
+    for (const refp of pdb) {
+        let match = true;
+        for (let editidx = 0, refidx = 0; editidx < editp.words.length; editidx++ , refidx++) {
+            if (editidx >= refp.words.length) {
+                break;
+            }
+            if (editp.words[editidx] !== refp.words[refidx]) {
+                const isprefix = refp.words[refidx].startsWith(editp.words[editidx]);
+                const iscompletionreq = tryGetComplNum(editp.words[editidx]) !== null;
+                const canmatch = (isprefix && editidx >= editp.words.length - 2) || iscompletionreq;
+                if (!canmatch) {
+                    match = false;
+                }
+            }
+        }
+        if (match)
+            matches.push(refp);
+    }
+
+    return matches;
+}
 function setupTextarea() {
     const tax = document.getElementById('ta1');
     if (!(tax instanceof HTMLTextAreaElement))
@@ -195,27 +219,7 @@ function setupTextarea() {
             hideResults();
             return;
         }
-
-        // Find matching phrases in the reference text.
-        const matches: ParsedPhrase[] = [];
-        for (const refp of pdb) {
-            let match = true;
-            for (let editidx = 0, refidx = 0; editidx < editp.words.length; editidx++ , refidx++) {
-                if (editidx >= refp.words.length) {
-                    break;
-                }
-                if (editp.words[editidx] !== refp.words[refidx]) {
-                    const isprefix = refp.words[refidx].startsWith(editp.words[editidx]);
-                    const iscompletionreq = tryGetComplNum(editp.words[editidx]) !== null;
-                    const canmatch = (isprefix && editidx >= editp.words.length - 2) || iscompletionreq;
-                    if (!canmatch) {
-                        match = false;
-                    }
-                }
-            }
-            if (match)
-                matches.push(refp);
-        }
+        const matches = findMatches(editp, pdb);
 
         // Transform matches to list entries.
         hideResults();
