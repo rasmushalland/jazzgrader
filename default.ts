@@ -2,7 +2,6 @@ type PositionedPhrase = Readonly<{ text: string, pos: number }>;
 type ParsedPhrase = Readonly<{
     text: string,
     words: string[],
-    pos: number,
 }>;
 
 
@@ -20,7 +19,6 @@ function parsePhrase(p: PositionedPhrase): ParsedPhrase {
     return {
         text: p.text,
         words: words,
-        pos: p.pos,
     };
 }
 
@@ -215,6 +213,7 @@ function setupTextarea() {
         const pe = getSearchSentStartFwd(usertext, cursorpos);
         const mp: PositionedPhrase = { text: usertext.substr(ps, pe - ps), pos: ps };
         const editp = parsePhrase(mp);
+        const editp_pos = ps;
         if (editp.words.length === 0) {
             hideResults();
             return;
@@ -234,7 +233,7 @@ function setupTextarea() {
             if (refnum < matches.length) {
                 const replacement = matches[refnum].text;
                 const curtext = ta.value;
-                const ofs = editp.pos;
+                const ofs = editp_pos;
                 const before = curtext.substr(0, ofs);
                 const after = curtext.substr(ofs + editp.text.length);
                 const newtext = before + replacement + after;
