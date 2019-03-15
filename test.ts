@@ -54,6 +54,21 @@ the sentence iQs this. More
     const ppx: (text: string) => ParsedPhrase = text => {
         return parsePhrase({ text, pos: 0 });
     }
+    QUnit.test('parsePhrase, basic', ass => {
+        ass.equal(ppx('the').words.join(','), 'the');
+        ass.equal(ppx('the bee').words.join(','), 'the,bee');
+    });
+    QUnit.test('parsePhrase, numeric suffix', ass => {
+        // this is mainly to ensure that we recognize the completion request words as single words.
+        ass.equal(ppx('the p2').words.join(','), 'the,p2');
+    });
+    QUnit.test('parsePhrase, diacritics', ass => {
+        ass.equal(ppx('también').words.join(','), 'tambien');
+    });
+    QUnit.test('match, removeDiacritics', ass => {
+        let matches = findMatches_wordsubsequence(ppx('tambien'), [ppx('también')]).map(match => match.text);
+        ass.deepEqual(matches, ['también']);
+    });
     QUnit.test('match, substring, entire word', ass => {
         let matches = findMatches_wordsubsequence(ppx('the bee'), [ppx('the bee is'), ppx('the shark is')]).map(match => match.text);
         ass.deepEqual(matches, ['the bee is']);

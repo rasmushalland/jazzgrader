@@ -12,7 +12,8 @@ interface String {
 
 function parsePhrase(p: PositionedPhrase): ParsedPhrase {
     const words: string[] = [];
-    p.text.replace(/(\w+)/g, (s, ...rest) => {
+    //  unicode equivalent of '\w' according to https://mathiasbynens.be/notes/es-unicode-property-escapes:
+    p.text.replace(/([\p{Alphabetic}\p{Mark}\p{Decimal_Number}\p{Connector_Punctuation}\p{Join_Control}]+)/gu, (s, ...rest) => {
         words.push(removeDiacritics(s.toLocaleLowerCase()));
         return 'oo';
     });
