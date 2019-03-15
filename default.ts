@@ -24,12 +24,77 @@ function parsePhrase(p: PositionedPhrase): ParsedPhrase {
     };
 }
 
-
 function findPhrasesInRefText(text: string): PositionedPhrase[] {
-    return findPhrasesEx(text, true);
+    // using .split does not give us the match position. Not that we need it
+    // for the reference text, but we do need it for the user input.
+
+    // This is a bit clumsy: we want one item per blank-line-separated
+    // sequence of text lines. regex could be shorter, but it resisted...
+    const lines: { text: string, pos: number }[] = [];
+    let lastlfidx = -1;
+    let iter = 0;
+    while (true) {
+        iter++;
+        if (iter >= 500)
+            throw new Error('iter...');
+        const nextidx = text.indexOf('\n', lastlfidx + 1);
+        if (nextidx == -1) {
+            if (lastlfidx + 2 < text.length) {
+                lines.push({ text: text.substr(lastlfidx + 1), pos: lastlfidx + 1 });
+            }
+            break;
+        }
+        else {
+            lines.push({ text: text.substr(lastlfidx + 1, nextidx - (lastlfidx + 1)), pos: lastlfidx + 1 });
+            lastlfidx = nextidx;
+        }
+    }
+
+
+    // Identify the line sequences and join them.
+    let cursectlines: { text: string, pos: number }[] | null = null;
+    const sections: { text: string, pos: number }[] = [];
+    const drainToSectionIfNotEmpty = () => {
+        if (cursectlines) {
+            var sectext = cursectlines.map(l => l.text).join('\n');
+            sections.push({ text: sectext, pos: cursectlines[0].pos });
+        }
+        cursectlines = null;
+    }
+    for (let index = 0; index < lines.length; index++) {
+        const line = lines[index];
+        const empty = line.text.match(/^\s*$/);
+        if (empty) {
+            drainToSectionIfNotEmpty();
+        } else {
+            if (cursectlines === null) {
+                cursectlines = [];
+            }
+            cursectlines.push(line);
+        }
+    }
+    drainToSectionIfNotEmpty();
+
+    return sections.map(r => ({
+        text: r.text.replace(/\s+/g, ' '),
+        pos: r.pos
+    }));
 }
+
 function findPhrasesInUserInput(text: string): PositionedPhrase[] {
-    return findPhrasesEx(text, false);
+    let parts: PositionedPhrase[] = [];
+    // this regex is made for some random text (typescript manual piece), so
+    // it might need some modifications.
+    text.replace(/(\b[A-Z].+?(?:\.|\?))/gms, (s, ...rest) => {
+        const pos = rest[1] as number;
+        parts.push({ text: s, pos });
+        return 'Q';
+    });
+
+    return parts.map(r => ({
+        text: r.text.replace(/\s+/g, ' '),
+        pos: r.pos
+    }));
 }
 
 function searchSentStartBack(text: string, pos: number): number {
@@ -68,77 +133,6 @@ function getSearchSentStartFwd(text: string, pos: number): number {
     return pos;
 }
 
-function findPhrasesEx(text: string, isRefText: boolean): PositionedPhrase[] {
-    let parts: PositionedPhrase[] = [];
-    if (!isRefText) {
-        // this regex is made for some random text (typescript manual piece), so
-        // it might need some modifications.
-        text.replace(/(\b[A-Z].+?(?:\.|\?))/gms, (s, ...rest) => {
-            const pos = rest[1] as number;
-            parts.push({ text: s, pos });
-            return 'Q';
-        });
-
-
-    } else {
-        // using .split does not give us the match position. Not that we need it
-        // for the reference text, but we do need it for the user input.
-
-        // This is a bit clumsy: we want one item per blank-line-separated
-        // sequence of text lines. regex could be shorter, but it resisted...
-        const lines: { text: string, pos: number }[] = [];
-        let lastlfidx = -1;
-        let iter = 0;
-        while (true) {
-            iter++;
-            if (iter >= 500)
-                throw new Error('iter...');
-            const nextidx = text.indexOf('\n', lastlfidx + 1);
-            if (nextidx == -1) {
-                if (lastlfidx + 2 < text.length) {
-                    lines.push({ text: text.substr(lastlfidx + 1), pos: lastlfidx + 1 });
-                }
-                break;
-            }
-            else {
-                lines.push({ text: text.substr(lastlfidx + 1, nextidx - (lastlfidx + 1)), pos: lastlfidx + 1 });
-                lastlfidx = nextidx;
-            }
-        }
-
-
-        // Identify the line sequences and join them.
-        let cursectlines: { text: string, pos: number }[] | null = null;
-        const sections: { text: string, pos: number }[] = [];
-        const drainToSectionIfNotEmpty = () => {
-            if (cursectlines) {
-                var sectext = cursectlines.map(l => l.text).join('\n');
-                sections.push({ text: sectext, pos: cursectlines[0].pos });
-            }
-            cursectlines = null;
-        }
-        for (let index = 0; index < lines.length; index++) {
-            const line = lines[index];
-            const empty = line.text.match(/^\s*$/);
-            if (empty) {
-                drainToSectionIfNotEmpty();
-            } else {
-                if (cursectlines === null) {
-                    cursectlines = [];
-                }
-                cursectlines.push(line);
-            }
-        }
-        drainToSectionIfNotEmpty();
-
-        parts = sections;
-    }
-
-    return parts.map(r => ({
-        text: r.text.replace(/\s+/g, ' '),
-        pos: r.pos
-    }));
-}
 
 function tryGetComplNum(wx: string): number | 'maybe' | null {
     const arr = wx.match(/^p(\d*)$/);
