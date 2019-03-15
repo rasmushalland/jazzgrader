@@ -226,21 +226,21 @@ function setupTextarea() {
             .map(w => tryGetComplNum(w))
             .filter(cn => cn !== null && cn !== 'maybe');
         if (complnums.length) {
-            const n = complnums[0] as number - 1;
-            if (n < matches.length) {
-                const replacement = matches[n].text + '.';
+            const refnum = complnums[0] as number - 1;
+            if (refnum < matches.length) {
+                const replacement = matches[refnum].text;
                 const curtext = ta.value;
                 const ofs = editp.pos;
                 const before = curtext.substr(0, ofs);
                 const after = curtext.substr(ofs + editp.text.length);
                 const newtext = before + replacement + after;
                 ta.value = newtext;
-                ta.selectionStart = before.length + replacement.length - 1;
-                ta.selectionEnd = before.length + replacement.length - 1;
+                ta.selectionStart = before.length + replacement.length;
+                ta.selectionEnd = before.length + replacement.length;
                 updateCharCountinfo();
             }
             else
-                console.log(`Match #${n + 1} does not exist.`);
+                console.log(`Match #${refnum + 1} does not exist.`);
         } else {
             for (let idx = 0; idx < Math.min(matches.length, 9); idx++) {
                 const li = document.createElement('li');
