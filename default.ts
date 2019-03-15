@@ -168,15 +168,16 @@ function findMatches_wordsubsequence(query: ParsedPhrase, pdb: ReadonlyArray<Par
         // index in refp where searching should start.
         let startrefidx = 0;
 
-        for (let qidx = 0; qidx < query.words.length; qidx++) {
+        for (let idxq = 0; idxq < query.words.length; idxq++) {
+            const wquery = query.words[idxq];
             let wmatch = false;
-            for (let refidx = startrefidx; refidx < refp.words.length; refidx++) {
-                const refw = refp.words[refidx];
-                const queryw = query.words[qidx];
+            for (let idxref = startrefidx; idxref < refp.words.length; idxref++) {
+                const wref = refp.words[idxref];
+                startrefidx = idxref;
 
-                const isprefix = refw.startsWith(queryw);
-                const iscompletionreq = tryGetComplNum(queryw) !== null;
-                if (isprefix || (iscompletionreq && qidx !== 0)) {
+                const isprefix = wref.startsWith(wquery);
+                const iscompletionreq = tryGetComplNum(wquery) !== null;
+                if (isprefix || (iscompletionreq && idxq !== 0)) {
                     wmatch = true;
                     break;
                 }
@@ -220,7 +221,7 @@ function findMatches(query: ParsedPhrase, pdb: ReadonlyArray<ParsedPhrase>): Par
 
     // deduplicate the matches.
     const matches: ParsedPhrase[] = [];
-    const usedtexts : {[text:string]: boolean} = {};
+    const usedtexts: { [text: string]: boolean } = {};
 
     for (const m of rawmatches) {
         if (usedtexts[m.text])

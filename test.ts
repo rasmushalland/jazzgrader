@@ -51,9 +51,11 @@ the sentence iQs this. More
 the sentence iQs this. More
 `), 'the sentence iQs this.');
     });
+
     const ppx: (text: string) => ParsedPhrase = text => {
         return parsePhrase({ text, pos: 0 });
     }
+
     QUnit.test('parsePhrase, basic', ass => {
         ass.equal(ppx('the').words.join(','), 'the');
         ass.equal(ppx('the bee').words.join(','), 'the,bee');
@@ -65,22 +67,27 @@ the sentence iQs this. More
     QUnit.test('parsePhrase, diacritics', ass => {
         ass.equal(ppx('también').words.join(','), 'tambien');
     });
-    QUnit.test('match, removeDiacritics', ass => {
-        let matches = findMatches_wordsubsequence(ppx('tambien'), [ppx('también')]).map(match => match.text);
-        ass.deepEqual(matches, ['también']);
-    });
-    QUnit.test('match, substring, entire word', ass => {
+
+    QUnit.test('match, subsequence, entire word', ass => {
         let matches = findMatches_wordsubsequence(ppx('the bee'), [ppx('the bee is'), ppx('the shark is')]).map(match => match.text);
         ass.deepEqual(matches, ['the bee is']);
 
         matches = findMatches_wordsubsequence(ppx('the bee'), [ppx('the yellow bee')]).map(match => match.text);
         ass.deepEqual(matches, ['the yellow bee']);
     });
-    QUnit.test('match, substring, word prefix', ass => {
+    QUnit.test('match, subsequence, entire word', ass => {
+        let matches = findMatches_wordsubsequence(ppx('the bee'), [ppx('bee the')]).map(match => match.text);
+        ass.deepEqual(matches, [], 'The words are in different order.');
+    });
+    QUnit.test('match, subsequence, word prefix', ass => {
         let matches = findMatches_wordsubsequence(ppx('th be'), [ppx('the bee')]).map(match => match.text);
         ass.deepEqual(matches, ['the bee']);
 
         matches = findMatches_wordsubsequence(ppx('the be'), [ppx('the yellow bee')]).map(match => match.text);
         ass.deepEqual(matches, ['the yellow bee']);
-    })
+    });
+    QUnit.test('match, removeDiacritics', ass => {
+        let matches = findMatches_wordsubsequence(ppx('tambien'), [ppx('también')]).map(match => match.text);
+        ass.deepEqual(matches, ['también']);
+    });
 }
