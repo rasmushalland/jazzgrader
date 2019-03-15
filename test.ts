@@ -51,4 +51,21 @@ the sentence iQs this. More
 the sentence iQs this. More
 `), 'the sentence iQs this.');
     });
+    const ppx: (text: string) => ParsedPhrase = text => {
+        return parsePhrase({ text, pos: 0 });
+    }
+    QUnit.test('match, substring, entire word', ass => {
+        let matches = findMatches_wordsubsequence(ppx('the bee'), [ppx('the bee is'), ppx('the shark is')]).map(match => match.text);
+        ass.deepEqual(matches, ['the bee is']);
+
+        matches = findMatches_wordsubsequence(ppx('the bee'), [ppx('the yellow bee')]).map(match => match.text);
+        ass.deepEqual(matches, ['the yellow bee']);
+    });
+    QUnit.test('match, substring, word prefix', ass => {
+        let matches = findMatches_wordsubsequence(ppx('th be'), [ppx('the bee')]).map(match => match.text);
+        ass.deepEqual(matches, ['the bee']);
+
+        matches = findMatches_wordsubsequence(ppx('the be'), [ppx('the yellow bee')]).map(match => match.text);
+        ass.deepEqual(matches, ['the yellow bee']);
+    })
 }

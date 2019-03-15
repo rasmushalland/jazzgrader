@@ -159,28 +159,76 @@ function hideResults() {
         reslist.firstElementChild.remove();
     }
 }
-function findMatches(editp: ParsedPhrase, pdb: ReadonlyArray<ParsedPhrase>): ParsedPhrase[] {
+function findMatches_wordsubsequence(query: ParsedPhrase, pdb: ReadonlyArray<ParsedPhrase>): ParsedPhrase[] {
     const matches: ParsedPhrase[] = [];
     for (const refp of pdb) {
         let match = true;
-        for (let editidx = 0, refidx = 0; editidx < editp.words.length; editidx++ , refidx++) {
-            if (editidx >= refp.words.length) {
+
+        // index in refp where searching should start.
+        let startrefidx = 0;
+
+        for (let qidx = 0; qidx < query.words.length; qidx++) {
+            let wmatch = false;
+            for (let refidx = startrefidx; refidx < refp.words.length; refidx++) {
+                const refw = refp.words[refidx];
+                const queryw = query.words[qidx];
+
+                const isprefix = refw.startsWith(queryw);
+                const iscompletionreq = tryGetComplNum(queryw) !== null;
+                if (isprefix || (iscompletionreq && qidx !== 0)) {
+                    wmatch = true;
+                    break;
+                }
+            }
+            if (!wmatch) {
+                match = false;
                 break;
             }
-            if (editp.words[editidx] !== refp.words[refidx]) {
-                const isprefix = refp.words[refidx].startsWith(editp.words[editidx]);
-                const iscompletionreq = tryGetComplNum(editp.words[editidx]) !== null;
-                const canmatch = (isprefix && editidx >= editp.words.length - 2) || (iscompletionreq && editidx !== 0);
+        }
+        if (match) {
+            matches.push(refp);
+        }
+    }
+    return matches;
+}
+
+function findMatches(query: ParsedPhrase, pdb: ReadonlyArray<ParsedPhrase>): ParsedPhrase[] {
+    const rawmatches: ParsedPhrase[] = [];
+    // Find ref texts of which the query is a prefix.
+    for (const refp of pdb) {
+        let match = true;
+        for (let qidx = 0, refidx = 0; qidx < query.words.length; qidx++ , refidx++) {
+            if (qidx >= refp.words.length) {
+                break;
+            }
+            if (query.words[qidx] !== refp.words[refidx]) {
+                const isprefix = refp.words[refidx].startsWith(query.words[qidx]);
+                const iscompletionreq = tryGetComplNum(query.words[qidx]) !== null;
+                const canmatch = (isprefix && qidx >= query.words.length - 2) || (iscompletionreq && qidx !== 0);
                 if (!canmatch) {
                     match = false;
                 }
             }
         }
         if (match)
-            matches.push(refp);
+            rawmatches.push(refp);
     }
 
-    return matches;
+    // Now search a bit wider: Find ref texts of which the query is a subsequence.
+    rawmatches.push(...findMatches_wordsubsequence(query, pdb));
+
+    // deduplicate the matches.
+    const matches: ParsedPhrase[] = [];
+    const usedtexts : {[text:string]: boolean} = {};
+
+    for (const m of rawmatches) {
+        if (usedtexts[m.text])
+            continue;
+        usedtexts[m.text] = true;
+        matches.push(m);
+    }
+
+    return rawmatches;
 }
 function setupTextarea() {
     const tax = document.getElementById('ta1');
