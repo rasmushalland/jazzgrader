@@ -8,18 +8,23 @@
 
 <body>
     <section>
-        <div>Write text in the text area below. Completions should appear as you type when there are any.</div>
+        <div>Write text in the text area below. Completions should appear as you type when there are any.
+            Select a completion by writing p1 to p9.
+        </div>
         <div>
             <div>
                 <div></div>
                 <div style='text-align: right'># chars: <input id=charcntinp style='width: 6em;'></div>
             </div>
-            <textarea id="ta1">Her er noget tekst lorem ipsum.</textarea>
+            <textarea id="ta1"></textarea>
         </div>
-        <p>Possible completions:</p>
+        <div>Reference text: (<a href='javascript:toggleShowRefTextTextarea()'>[toggle visibility]</a>)</div>
+        <textarea id="refTextTa">Her er noget tekst lorem ipsum.</textarea>
+        <div>Possible completions:</div>
         <ol id="options">
 
         </ol>
+
     </section>
 </body>
 

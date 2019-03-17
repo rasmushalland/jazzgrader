@@ -1,4 +1,4 @@
-/// <reference path="default.ts"/>
+/// <reference path="index.ts"/>
 /// <reference path="qunit.d.ts"/>
 
 

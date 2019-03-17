@@ -232,13 +232,15 @@ function findMatches(query: ParsedPhrase, pdb: ReadonlyArray<ParsedPhrase>): Par
 
     return rawmatches;
 }
+
+
 function setupTextarea() {
     const tax = document.getElementById('ta1');
     if (!(tax instanceof HTMLTextAreaElement))
         throw new Error('ta1 not found.');
     const ta = tax;
 
-    function updateCharCountinfo() {
+    function updateCharCountInfo() {
         // Update the character count info.
         const charcntinp = document.getElementById('charcntinp')!;
         if (!(charcntinp instanceof HTMLInputElement))
@@ -251,14 +253,19 @@ function setupTextarea() {
             charcntinp.classList.remove('char-limit-exeeded');
     }
 
-    updateCharCountinfo();
-    const pdb = findPhrasesInRefText(reftextraw).map(sent => parsePhrase(sent));
+    updateCharCountInfo();
+    const refTa = getRefTextarea();
+    refTa.addEventListener('change', _ => {
+        pdb = findPhrasesInRefText(getRefTextarea().value).map(sent => parsePhrase(sent));
+    });
+    let pdb = findPhrasesInRefText(getRefTextarea().value).map(sent => parsePhrase(sent));
+
     ta.addEventListener('blur', () => {
         hideResults();
     });
     ta.addEventListener('input', () => {
         const usertext = ta.value;
-        updateCharCountinfo();
+        updateCharCountInfo();
 
         // Find the phrase that the cursor is in.
         const cursorpos = ta.selectionStart;
@@ -293,7 +300,7 @@ function setupTextarea() {
                 ta.value = newtext;
                 ta.selectionStart = before.length + replacement.length;
                 ta.selectionEnd = before.length + replacement.length;
-                updateCharCountinfo();
+                updateCharCountInfo();
             }
             else
                 console.log(`Match #${refnum + 1} does not exist.`);
@@ -308,11 +315,22 @@ function setupTextarea() {
 }
 
 setTimeout(() => {
+    getRefTextarea().value = stdRefText;
     if (document.getElementById('ta1'))
         setupTextarea();
-    const pplist = findPhrasesInRefText(reftextraw).map(sent => parsePhrase(sent));
-    console.log(pplist);
 }, 1000);
+
+function getRefTextarea(): HTMLTextAreaElement {
+    const refTa = document.getElementById('refTextTa');
+    if (!(refTa instanceof HTMLTextAreaElement))
+        throw new Error('ref TA not found.');
+    return refTa;
+}
+function toggleShowRefTextTextarea(){
+    const ta = getRefTextarea();
+    console.log('ta', ta);
+    ta.style.display = getComputedStyle(ta).display != 'none' ? 'none' : 'unset';
+}
 
 function removeDiacritics(str: string): string {
     const s1 = str.normalize('NFD');
@@ -334,7 +352,7 @@ function removeDiacritics(str: string): string {
 
 
 
-const reftextraw = `
+const stdRefText = `
 Good job, keep on working
 
 
