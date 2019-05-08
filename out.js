@@ -183,10 +183,16 @@ function findMatches(query, pdb) {
     }
     return rawmatches;
 }
-function enforceLineLengthForTextArea() {
-    const text = getTextArea().value;
+function copyTextAreaContentAndEnforceLineLength() {
+    const ta = getTextArea();
+    const text = ta.value;
     const res = breakIntolines(text);
-    getTextArea().value = res;
+    ta.value = res;
+    ta.select();
+    const range = document.createRange();
+    range.selectNode(ta);
+    window.getSelection().addRange(range);
+    document.execCommand('copy');
 }
 function getTextArea() {
     const tax = document.getElementById('ta1');
@@ -615,8 +621,7 @@ the sentence iQs this. More
 Participation in class is a must if you want to improve speaking
         
          `), `Participation in class is a must if you want to improve
-speaking
-`);
+speaking`);
     });
 }
 //# sourceMappingURL=out.js.map

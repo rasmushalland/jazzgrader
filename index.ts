@@ -233,10 +233,16 @@ function findMatches(query: ParsedPhrase, pdb: ReadonlyArray<ParsedPhrase>): Par
     return rawmatches;
 }
 
-function enforceLineLengthForTextArea() {
-    const text = getTextArea().value;
+function copyTextAreaContentAndEnforceLineLength() {
+    const ta = getTextArea();
+    const text = ta.value;
     const res = breakIntolines(text);
-    getTextArea().value = res;
+    ta.value = res;
+    ta.select();
+    const range = document.createRange();
+    range.selectNode(ta);
+    window.getSelection()!.addRange(range);
+    document.execCommand('copy');
 }
 
 function getTextArea() {
