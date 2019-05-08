@@ -183,11 +183,19 @@ function findMatches(query, pdb) {
     }
     return rawmatches;
 }
-function setupTextarea() {
+function enforceLineLengthForTextArea() {
+    const text = getTextArea().value;
+    const res = breakIntolines(text);
+    getTextArea().value = res;
+}
+function getTextArea() {
     const tax = document.getElementById('ta1');
     if (!(tax instanceof HTMLTextAreaElement))
         throw new Error('ta1 not found.');
-    const ta = tax;
+    return tax;
+}
+function setupTextarea() {
+    const ta = getTextArea();
     function updateCharCountInfo() {
         const charcntinp = document.getElementById('charcntinp');
         if (!(charcntinp instanceof HTMLInputElement))
@@ -320,9 +328,7 @@ function breakIntolines(text, lineLength) {
         }
         resarr.push(rest.trim());
     }
-    if (resarr.length == 0)
-        return '';
-    return resarr.join('\n').trim() + '\n';
+    return resarr.join('\n').trim();
 }
 const stdRefText = `
 Good job, keep on working

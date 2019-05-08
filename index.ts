@@ -233,12 +233,20 @@ function findMatches(query: ParsedPhrase, pdb: ReadonlyArray<ParsedPhrase>): Par
     return rawmatches;
 }
 
+function enforceLineLengthForTextArea() {
+    const text = getTextArea().value;
+    const res = breakIntolines(text);
+    getTextArea().value = res;
+}
 
-function setupTextarea() {
+function getTextArea() {
     const tax = document.getElementById('ta1');
     if (!(tax instanceof HTMLTextAreaElement))
         throw new Error('ta1 not found.');
-    const ta = tax;
+    return tax;
+}
+function setupTextarea() {
+    const ta = getTextArea();
 
     function updateCharCountInfo() {
         // Update the character count info.
@@ -389,11 +397,8 @@ function breakIntolines(text: string, lineLength?: number): string {
         }
         resarr.push(rest.trim());
     }
-    // just to avoid adding line break to the empty string;
-    if (resarr.length == 0)
-        return '';
 
-    return resarr.join('\n').trim() + '\n';
+    return resarr.join('\n').trim();
 }
 
 
