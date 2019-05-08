@@ -92,4 +92,15 @@ the sentence iQs this. More
         let matches = findMatches_wordsubsequence(ppx('tambien'), [ppx('también')]).map(match => match.text);
         ass.deepEqual(matches, ['también']);
     });
+
+
+
+    QUnit.test("break into lines, first", ass => {
+        ass.equal(breakIntolines(`
+Participation in class is a must if you want to improve speaking
+        
+         `), `Participation in class is a must if you want to improve
+speaking
+`);
+    });
 }

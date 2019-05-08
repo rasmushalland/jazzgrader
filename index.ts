@@ -326,7 +326,7 @@ function getRefTextarea(): HTMLTextAreaElement {
         throw new Error('ref TA not found.');
     return refTa;
 }
-function toggleShowRefTextTextarea(){
+function toggleShowRefTextTextarea() {
     const ta = getRefTextarea();
     console.log('ta', ta);
     ta.style.display = getComputedStyle(ta).display != 'none' ? 'none' : 'unset';
@@ -348,6 +348,53 @@ function removeDiacritics(str: string): string {
     return arr.join('');
 }
 
+
+function breakIntolines(text: string, lineLength?: number): string {
+    const text2 = text.replace('\r\n', '\n');
+    const lines = text2.split(/\n/g);
+
+    const resarr: string[] = [];
+    const ml = lineLength || 55;
+    // These limit are somewhat random.
+    if (ml < 15) {
+        throw new Error('Max line length must at least be 15.');
+    }
+    else if (ml >= 150) {
+        throw new Error('Max line length must be less than 150.');
+    }
+
+    for (const il of lines) {
+        let rest = il.trim();
+        while (rest.length > ml) {
+            // Find the space that is closest to end max line length, if there is any.
+            let brokeAtSpace = false;
+            for (let idx = ml; idx >= 0; idx--) {
+                const isspace = rest[idx] === ' ';
+                if (isspace) {
+                    const fst = rest.substr(0, idx);
+                    resarr.push(fst.trim());
+                    rest = rest.substr(idx);
+                    brokeAtSpace = true;
+                    break;
+                }
+            }
+            if (!brokeAtSpace) {
+                // todo test
+                throw new Error('untested');
+                const len = ml - 3;
+                const fst = rest.substr(0, len) + '-';
+                resarr.push(fst.trim());
+                rest = rest.substr(len);
+            }
+        }
+        resarr.push(rest.trim());
+    }
+    // just to avoid adding line break to the empty string;
+    if (resarr.length == 0)
+        return '';
+
+    return resarr.join('\n').trim() + '\n';
+}
 
 
 
