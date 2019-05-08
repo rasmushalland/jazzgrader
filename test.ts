@@ -100,7 +100,6 @@ the sentence iQs this. More
 Participation in class is a must if you want to improve speaking
         
          `), `Participation in class is a must if you want to improve
-speaking
-`);
+speaking`);
     });
 }
