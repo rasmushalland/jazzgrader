@@ -368,7 +368,7 @@ function breakIntolines(text: string, lineLength?: number): string {
     const lines = text2.split(/\n/g);
 
     const resarr: string[] = [];
-    const ml = lineLength || 55;
+    const ml = lineLength || 45;
     // These limit are somewhat random.
     if (ml < 15) {
         throw new Error('Max line length must at least be 15.');

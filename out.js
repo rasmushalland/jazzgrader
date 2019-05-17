@@ -303,7 +303,7 @@ function breakIntolines(text, lineLength) {
     const text2 = text.replace('\r\n', '\n');
     const lines = text2.split(/\n/g);
     const resarr = [];
-    const ml = lineLength || 55;
+    const ml = lineLength || 45;
     if (ml < 15) {
         throw new Error('Max line length must at least be 15.');
     }
