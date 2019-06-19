@@ -16,7 +16,7 @@ function findPhrasesInRefText(text) {
     let iter = 0;
     while (true) {
         iter++;
-        if (iter >= 500)
+        if (iter >= 5000)
             throw new Error('iter...');
         const nextidx = text.indexOf('\n', lastlfidx + 1);
         if (nextidx == -1) {
