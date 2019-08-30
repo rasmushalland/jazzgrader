@@ -13,7 +13,8 @@ interface String {
 function parsePhrase(p: PositionedPhrase): ParsedPhrase {
     const words: string[] = [];
     //  unicode equivalent of '\w' according to https://mathiasbynens.be/notes/es-unicode-property-escapes:
-    p.text.replace(/([\p{Alphabetic}\p{Mark}\p{Decimal_Number}\p{Connector_Punctuation}\p{Join_Control}]+)/gu, (s, ...rest) => {
+    p.text.replace(/(\w+)/gu, (s, ...rest) => {
+    // p.text.replace(/([\p{Alphabetic}\p{Mark}\p{Decimal_Number}\p{Connector_Punctuation}\p{Join_Control}]+)/gu, (s, ...rest) => {
         words.push(removeDiacritics(s.toLocaleLowerCase()));
         return 'oo';
     });
@@ -88,7 +89,8 @@ function findPhrasesInUserInput(text: string): PositionedPhrase[] {
     let parts: PositionedPhrase[] = [];
     // this regex is made for some random text (typescript manual piece), so
     // it might need some modifications.
-    text.replace(/(\b[A-Z].+?(?:\.|\?))/gms, (s, ...rest) => {
+    // text.replace(/(\b[A-Z].+?(?:\.|\?))/gms, (s, ...rest) => {
+    text.replace(/(\b[A-Z].+?(?:\.|\?))/gm, (s, ...rest) => {
         const pos = rest[1] as number;
         parts.push({ text: s, pos });
         return 'Q';
